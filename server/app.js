@@ -1,33 +1,59 @@
 const express = require('express');
 const fs = require('fs');
 const app = express();
-
+const csv = require('csvtojson');
 ignore = (req, res, next) => {
     if (req.originalUrl === '/favicon.ico') {
       res.status(204).json({nope: true});
-    } else {next();}
+    } else {next();
+    }
 }
 
-logger = (req, res) => {    
-    // write your logging code here
-        let date = new Date().toISOString();
-        res.status(200).send('ok');
-        res.on('finish', () => {
-            console.info(`User: ${req.get('User-Agent')}, ${date}, ${req.method}, ${req.originalUrl}, ${req.httpVersion}, ${res.statusCode}`); 
-            }).end();
-        }
+app.use(ignore);
 
-app.use([ignore, logger]);
-
-app.get('/', (req, res) => {
+app.get('/', (req, res, next) => {
 // write your code to respond "ok" here
-    logger();
-
+    let userAgent = req.get('User-Agent');
+    let date = new Date().toISOString();
+    let method = req.method;
+    let resource = req.originalUrl;
+    let version = `HTTP/${req.httpVersion}`;
+    let status = res.statusCode;
+    let csvLine = `${userAgent},${date},${method},${resource},${version},${status}`;
+    let newLine = '\n';
+    let csvEntry = newLine + csvLine;
+    res.status(200).send('ok');        
+    console.log(csvLine);
+    fs.stat('log.csv', (err) => {
+        if (err == null) {
+            fs.appendFile('log.csv', csvEntry, (err) => {
+                if (err) throw err;
+            });
+        }
+        else {
+            console.log(err);
+        }
+    });
 });
 
-app.get('/logs', (req, res) => {
-// write your code to return a json object containing the log data here
-
+app.get('/logs',  (req, res) => {
+    var log = [];
+    fs.readFile('log.csv','utf-8', (err, rows) => {
+        let cells = rows.split('\n');                                    
+        for(i=1; i<cells.length-1; i++) {
+            let keyValues = cells[i].split(',');   
+            let session = {               
+                'Agent': keyValues[0],
+                'Time': keyValues[1],
+                'Method': keyValues[2],
+                'Resource': keyValues[3],
+                'Version': keyValues[4],
+                'Status': keyValues[5]
+            };               
+            log[i-1]= session;   
+        }  
+        res.json(log);
+    });
 });
 
 module.exports = app;
