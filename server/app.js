@@ -1,7 +1,6 @@
 const express = require('express');
 const fs = require('fs');
 const app = express();
-const csv = require('csvtojson');
 ignore = (req, res, next) => {
     if (req.originalUrl === '/favicon.ico') {
       res.status(204).json({nope: true});
