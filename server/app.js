@@ -22,8 +22,6 @@ app.get('/', (req, res, next) => {
     let csvLine = `${userAgent},${date},${method},${resource},${version},${status}`;
     let newLine = '\n';
     let csvEntry = newLine + csvLine;
-    res.status(200).send('ok');        
-    console.log(csvLine);
     fs.stat('log.csv', (err) => {
         if (err == null) {
             fs.appendFile('log.csv', csvEntry, (err) => {
@@ -34,6 +32,8 @@ app.get('/', (req, res, next) => {
             console.log(err);
         }
     });
+    console.log(csvLine);
+    res.status(200).send('ok').end();        
 });
 
 app.get('/logs',  (req, res) => {
@@ -52,7 +52,7 @@ app.get('/logs',  (req, res) => {
             };
             log.push(session);
         });
-        res.json(log.slice(1));
+        res.json(log.slice(1)).end();
     });
 });
 
