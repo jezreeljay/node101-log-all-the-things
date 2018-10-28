@@ -38,10 +38,10 @@ app.get('/', (req, res, next) => {
 
 app.get('/logs',  (req, res) => {
     var log = [];
-    fs.readFile('log.csv','utf-8', (err, rows) => {
-        let cells = rows.split('\n');                                    
-        for(i=1; i<cells.length-1; i++) {
-            let keyValues = cells[i].split(',');   
+    fs.readFile('log.csv','utf-8', (err, sessions) => {
+        let row = sessions.split('\n');                                    
+        row.forEach((row) => {
+            let keyValues = row.split(',');
             let session = {               
                 'Agent': keyValues[0],
                 'Time': keyValues[1],
@@ -49,11 +49,12 @@ app.get('/logs',  (req, res) => {
                 'Resource': keyValues[3],
                 'Version': keyValues[4],
                 'Status': keyValues[5]
-            };               
-            log[i-1]= session;   
-        }  
-        res.json(log);
+            };
+            log.push(session);
+        });
+        res.json(log.slice(1));
     });
 });
+
 
 module.exports = app;
